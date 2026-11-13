@@ -1,0 +1,9 @@
+# Reproducible installs: do not commit installed dependency trees
+node_modules/
+**/node_modules/
+**/.vite/
+dist/
+build/
+.env
+.env.*
+!.env.example
