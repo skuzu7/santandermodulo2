@@ -1,0 +1,31 @@
+name: Dependency integrity
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  dependency-hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Disallow tracked dependency trees
+        run: |
+          python3 - <<'PY'
+          import subprocess
+          files = subprocess.check_output(["git", "ls-files", "-z"]).decode().split("\0")
+          bad = [name for name in files if "node_modules/" in name]
+          if bad:
+              raise SystemExit(f"Tracked dependency artifacts: {len(bad)}")
+          print("No tracked node_modules artifacts")
+          PY
+      - name: Verify backend lockfile install
+        working-directory: backend
+        run: npm ci --ignore-scripts
+      - name: Verify frontend lockfile install
+        working-directory: my-react-frontend
+        run: npm ci --ignore-scripts
